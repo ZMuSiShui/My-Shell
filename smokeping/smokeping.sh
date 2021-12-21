@@ -233,6 +233,7 @@ function configure_nginx() {
     print_msg "info" "修改 Single Nginx 配置文件"
     wget -O /etc/nginx/conf.d/smokeping.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
+    rm -rf /etc/nginx/conf.d/default.conf
     wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
     systemctl start nginx
 }
@@ -243,6 +244,7 @@ function configure_master_nginx() {
     wget -O /etc/nginx/conf.d/smokeping.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
     sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
+    rm -rf /etc/nginx/conf.d/default.conf
     wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
     systemctl start nginx   
 }
