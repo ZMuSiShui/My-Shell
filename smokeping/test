@@ -1,0 +1,137 @@
+*** Probes ***
++ FPing
+#binary = /usr/sbin/fping
+++ FPing01
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
+++ FPing02
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
+++ FPing03
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
+++ FPing04
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
+++ FPing05
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
+++ FPing06
+binary = /usr/sbin/fping
+hostinterval = 1
+packetsize = 50
++TCPPing
+binary = /usr/bin/tcpping # mandatory
+forks = 5
+offset = 50%
+step = 180
+timeout = 15
+*** Slaves ***
+secrets=/opt/smokeping/etc/smokeping_secrets.dist
++boomer
+display_name=联通云上海联通机房
+color=ff3333
++slave2
+display_name=腾讯云成都电信机房
+color=00ff00
++slave3
+display_name=移动云北京移动机房
+color=ffff00
+*** Targets ***
+probe = FPing01
+menu = Top
+title = VPS主机\服务器线路质量监控
+remark =  <p><b>对各大VPS主机、服务器、机房线路质量与网络状况进行持续性的监控，</b><b>用统计数据帮助分析出性价比最高的VPS主机与服务器。</b></p> \
+<p><b>图表说明：</b></p> \
+<p><b>一、</b>X轴表示时间，Y轴表示Ping、DNS、Curl请求响应时长，相关参数见注释。<br> \
+<b>二、</b>网络丢包和延迟用不同的颜色和阴影来表示，阴影块越大说明线路越不稳定。<br> \
+<b>三、</b>图表中曲线上不同的颜色表示丢包数、延迟不同，点击图表并勾选范围可放大。<br> \
+<b>四、</b>监控统计于电信、联通、移动三家网络机房，如未注明则默认本站日本机房。</p> \
+<p>邮箱: iwzfou@gmail.com；QQ：798558110；Q群：140917087。<br>各大VPS主机性能评测排行见：<a href="https://wzfou.com/vps-bangdan/" target="_blank">https://wzfou.com/vps-bangdan/</a></p>  
++ kr
+menu= 韩国
+title = 韩国VPS主机\服务器线路监控统计
+probe = FPing01
+remark = <p><b>这里列出了各大VPS主机\服务器商位于韩国各地机房的网络线路质量监控统计情况。通过对比我们可以一目了然地看出不同的VPS主机服务器线路质量的差别。</b></p> \
+<p><b>图表说明：</b></p> \
+<p><b>一、</b>X轴表示时间，Y轴表示Ping、DNS、Curl请求响应时长，相关参数见注释。<br> \
+<b>二、</b>网络丢包和延迟用不同的颜色和阴影来表示，阴影块越大说明线路越不稳定。<br> \
+<b>三、</b>图表中曲线上不同的颜色表示丢包数、延迟不同，点击图表并勾选范围可放大。<br> \
+<b>四、</b>监控统计于电信、联通、移动三家网络机房，如未注明则默认本站日本机房。</p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+#parents = owner:/kr/James location:/
+host =/kr/kdatacenter~slave2 /kr/LG~slave2 /kr/soar~slave2 /kr/tencent~slave2 /kr/krgcore~slave2 /kr/krlightsail~slave2
+++ kdatacenter
+menu = kdatacenter
+title =韩国kdatacenter VPS主机
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。<br><br>kdatacenter VPS评测报告：<a href="https://wzfou.com/kdatacenter/" target="_blank"> Kdatacenter韩国VPS主机性能与速度评测-SK机房速度快但是不好用</a></p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 211.10.17.1
+++ LG
+menu = 韩国的LG 主机
+title =韩国LG DACOM机房VPS主机
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。</p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 211.233.74.23
+++ soar
+menu = soar-clouds
+title =soar-clouds韩国B区VPS主机
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。<br><br>soar-clouds VPS评测报告：<a href="https://wzfou.com/soar-clouds/" target="_blank"> SoarClouds韩国日本香港台湾VPS主机性能速度测评-流量按量付费</a></p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 103.86.46.1
+++ tencent
+menu = 腾讯云VPS韩国
+title =腾讯云韩国首尔机房
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。<br><br>腾讯云 VPS评测报告：<a href="https://wzfou.com/tencent-kr-pingce/" target="_blank"> 腾讯云韩国VPS主机性能与速度评测-韩国VPS主机直连速度快价格贵</a></p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 119.28.152.28
+++ krgcore
+menu = Gcore VPS韩
+title =Gcore韩国首尔机房VPS主机
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。<br><br>Gcore韩国VPS评测报告：<a href="https://wzfou.com/gcore-pingce/" target="_blank"> Gcore韩国VPS性能与速度测评-俄罗斯美国日本新加坡VPS主机测评</a></p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 119.28.152.28
+++ krlightsail
+menu = Lightsail韩
+title =Lightsail AWS亚马逊韩国首尔VPS主机
+slaves = boomer slave2 slave3
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。<br><br>Gcore韩国VPS评测报告：<a href="https://wzfou.com/gcore/" target="_blank"> Gcore VPS俄罗斯伯力,韩国首尔VPS主机性能与速度评测-电信联通直连价格便宜</a></p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host = 52.78.63.252
+++ MultiHostd
+menu = 汇总(电信)
+title = 韩国VPS主机\服务器线路质量横向对比（电信）
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。</p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host =/kr/kdatacenter~slave2 /kr/LG~slave2 /kr/soar~slave2 /kr/tencent~slave2 /kr/krgcore~slave2 /kr/krlightsail~slave2
+++ MultiHost
+menu = 汇总(联通)
+title = 韩国VPS主机\服务器线路质量横向对比（联通）
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。</p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host =/kr/kdatacenter~boomer /kr/LG~boomer /kr/soar~boomer /kr/tencent~boomer /kr/krgcore~boomer /kr/krlightsail~boomer
+++ MultiHostyd
+menu = 汇总(移动)
+title = 韩国VPS主机\服务器线路质量横向对比（移动）
+remark = <p><strong>图表说明：</strong> \
+<p><b>一、</b>X轴表示时间，Y轴表示ping的响应时长。各表格上方有参数说明。<br><b>二、</b>网络丢包和延迟用颜色和阴影来表示，阴影块越大说明线路越不稳定。<br><b>三、</b>曲线上不同的颜色表示丢包数不同，点击图表并勾选范围可放大详情。</p> \
+<p><strong>参数说明：RTT</strong>即往返延时；<strong>Median RTT</strong>即RTT中位数（本监控共发出10个包，此数值即第5个包的RTT）。<strong>AV MD</strong>平均中位数；<strong>AV LS</strong>平均丢包率；<br><strong>AV SD</strong>每一轮多个测量的平均标准偏差；<strong>AM / AS</strong>平均中位数和平均标准差的比值；<strong>packet loss</strong>丢包率。</p>
+host =/kr/kdatacenter~slave3 /kr/LG~slave3 /kr/soar~slave3 /kr/tencent~slave3 /kr/krgcore~slave3 /kr/krlightsail~slave3

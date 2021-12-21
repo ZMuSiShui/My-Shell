@@ -218,11 +218,11 @@ function configure_somkeping_master(){
 function nginx_install() {
     print_msg "info" "安装 Nginx"
     if ! command -v nginx >/dev/null 2>&1; then
-        ${INS} nginx
+        ${INS} nginx spawn-fcgi
         print_msg "info" "Nginx 安装"
     else
         print_msg "warn" "Nginx 已存在"
-        ${INS} nginx
+        ${INS} nginx spawn-fcgi
     fi
     # 遗留问题处理
     mkdir -p /etc/nginx/conf.d >/dev/null 2>&1
@@ -323,6 +323,7 @@ function install_somkeping() {
         echo -e "${server_name}" > ${smokeping_host}
     fi
     print_msg "info" "安装 SmokePing $1端完成"
+    print_msg "info" "配置文件地址: /opt/smokeping/etc/config"
 }
 
 function check_install() {
