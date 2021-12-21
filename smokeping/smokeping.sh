@@ -62,12 +62,12 @@ function check_system() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         print_msg "info" "当前系统为 Centos ${VERSION_ID} ${VERSION}"
         INS="yum install -y"
-        wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/src/nginx.repo
+        wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/base/nginx.repo
 
     elif [[ "${ID}" == "ol" ]]; then
         print_msg "info" "当前系统为 Oracle Linux ${VERSION_ID} ${VERSION}"
         INS="yum install -y"
-        wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/src/nginx.repo
+        wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/base/nginx.repo
 
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
         print_msg "info" "当前系统为 Debian ${VERSION_ID} ${VERSION}"
