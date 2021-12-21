@@ -107,6 +107,7 @@ function check_system() {
         setenforce 0
     fi
     # 关闭各类防火墙
+    print_msg "info" "关闭防火墙"
     systemctl stop firewalld
     systemctl disable firewalld
     systemctl stop nftables
@@ -152,32 +153,15 @@ function check_status() {
     fi
 }
 
-#配置smokeping
-function configure() {
-    cd /opt/smokeping/htdocs
-    mkdir var cache data
-    mv smokeping.fcgi.dist smokeping.fcgi
-    cd /opt/smokeping/etc
-    rm -rf config*
-    wget -O config -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/config
-    wget -O /opt/smokeping/lib/Smokeping/Graphs.pm -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/Graphs.pm
-    sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
-    chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
-    # 创建启停脚本文件
-    wget -O /etc/init.d/smokeping.service -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping
-    chmod 755 /etc/init.d/smokeping
-    systemctl enable smokeping.service
-}
-
 # 安装依赖
 function install_dependency() {
-    print_msg "info" "安装依赖中"
+    print_msg "info" "安装 SmokePing 依赖"
     $INS rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
 }
 
 # 清除安装历史
 function clean_history() {
-    print_msg "info" "清楚安装历史"
+    print_msg "info" "清除安装历史"
     kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
     rm -rf /opt/smokeping
 }
@@ -192,18 +176,21 @@ function download_source() {
 
 # 编译安装 SomkePing
 function make_somkeping(){
+    print_msg "info" "编译安装 SomkePing"
     ./setup/build-perl-modules.sh /opt/smokeping/thirdparty
     ./configure --prefix=/opt/smokeping
     make install
 }
 
-#清除文件
+# 清除文件
 function del_tmp_files(){
+    print_msg "info" "清除文件"
     rm -rf /root/smokeping-2.6.*
 }
 
 # 配置 SomkePing
 function configure_somkeping(){
+    print_msg "info" "配置 SmokePing"
     cd /opt/smokeping/htdocs
     mkdir var cache data
     mv smokeping.fcgi.dist smokeping.fcgi
@@ -215,14 +202,16 @@ function configure_somkeping(){
     chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
 }
 
-#配置 config Master
+# 配置 SmokePing Master
 function configure_somkeping_master(){
+    print_msg "info" "配置 SmokePing Master"
     cd /opt/smokeping/etc
     sed -i "s/some.url/$server_name/g" config
 }
 
-# 安装 Nginx 及其他软件
+# 安装 Nginx
 function nginx_install() {
+    print_msg "info" "安装 Nginx"
     if ! command -v nginx >/dev/null 2>&1; then
         ${INS} nginx
         print_msg "info" "Nginx 安装"
@@ -236,6 +225,7 @@ function nginx_install() {
 
 # 修改 Nginx 配置文件
 function configure_nginx() {
+    print_msg "info" "修改 Single Nginx 配置文件"
     wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
     wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
@@ -244,6 +234,7 @@ function configure_nginx() {
 
 # 修改 Nginx 配置文件 Master
 function configure_master_nginx() {
+    print_msg "info" "修改 Master Nginx 配置文件"
     wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
     sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
@@ -253,12 +244,14 @@ function configure_master_nginx() {
 
 # 修改 SomkePing 权限
 function change_access() {
+    print_msg "info" "修改 SomkePing 权限"
     chown -R nginx:nginx /opt/smokeping/htdocs
     chown -R nginx:nginx /opt/smokeping/etc/smokeping_secrets.dist
 }
 
-# 配置supervisor
+# 配置 Supervisor
 function configure_supervisor(){
+    print_msg "info" "配置 Supervisor"
     wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
     supervisord -c /etc/supervisord.conf
     systemctl enable supervisord.service
@@ -267,6 +260,7 @@ function configure_supervisor(){
 
 # 同步时间
 function time_synchronization(){
+    print_msg "info" "同步时间"
     cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 2>/dev/null
     date -s "$(curl -sk --head https://dash.cloudflare.com | grep ^Date: | sed 's/Date: //g')"
 }
@@ -294,8 +288,8 @@ function install_somkeping() {
         rm -rf /opt/smokeping/etc/smokeping_secrets.dist
         echo -e "${slaves_secret}" > /opt/smokeping/etc/smokeping_secrets.dist
     fi
-    configure_somkeping
     # 配置 config Master
+    configure_somkeping
     if [[ "$1" == "Master" ]]; then
         configure_somkeping_master
     fi
@@ -370,35 +364,41 @@ function check_install() {
     fi
 }
 
+# 更换 Linux 软件源
 function change_mirrors() {
+    print_msg "info" "更换 Linux 软件源"
     [ -f "ChangeMirrors.sh" ] && rm -rf ./ChangeMirrors.sh
     wget -N --no-check-certificate https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh && chmod +x ChangeMirrors.sh && ./ChangeMirrors.sh
 }
 
-# 启动Single服务
+# 启动 Single 服务
 function Single_Run_SmokePing(){
+    print_msg "info" "启动 Single 服务"
     cd /opt/smokeping/bin
     ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
     Change_Access
 }
 
-# 启动Master服务
+# 启动 Master 服务
 function Master_Run_SmokePing(){
+    print_msg "info" "启动 Master 服务"
     cd /opt/smokeping/bin
     ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
     Change_Access
 }
 
-# 启动Slaves服务
+# 启动 Slaves 服务
 function Slaves_Run_SmokePing(){
+    print_msg "info" "启动 Slaves 服务"
     cd /opt/smokeping/bin
     ./smokeping --master-url=http://$server_name/smokeping.fcgi --cache-dir=/opt/smokeping/htdocs/cache --shared-secret=/opt/smokeping/etc/smokeping_secrets.dist --slave-name=$slaves_name --logfile=/opt/smokeping/slave.log
 }
 
 # 安装 Tcpping
 function install_tcpping(){
+    print_msg "info" "安装 Tcpping"
     $INS tcptraceroute
     rm -rf /usr/bin/tcpping
     wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
@@ -407,7 +407,7 @@ function install_tcpping(){
     echo -e "${Info} 安装 tcpping 完成"
 }
 
-#卸载 SmokePing
+# 卸载 SmokePing
 function uninstall() {
     print_msg "warn" -e "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " && read -r unins
     case $unins in
