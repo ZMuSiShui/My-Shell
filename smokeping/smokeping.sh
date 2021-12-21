@@ -154,6 +154,7 @@ function configure() {
 
 function install_somkeping() {
     clean
+    check_system
     if [[ "$1" == "Master" ]]; then
         print_msg "info" "开始安装 Master"
         print_msg "info" "请输入Master地址 : " && read -r server_name
@@ -289,7 +290,6 @@ function check_install() {
 
 function main() {
   check_user
-  check_system
   clear
   echo -e "\t SmokePing 一键管理脚本 ${Red}[${version}]${Font}"
 
