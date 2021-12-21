@@ -146,8 +146,8 @@ function configure() {
 	mv smokeping.fcgi.dist smokeping.fcgi
 	cd /opt/smokeping/etc
 	rm -rf config*
-	wget -O config -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/config
-	wget -O /opt/smokeping/lib/Smokeping/Graphs.pm -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/Graphs.pm
+	wget -O config -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/config
+	wget -O /opt/smokeping/lib/Smokeping/Graphs.pm -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/Graphs.pm
 	sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
 	chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
 }
@@ -175,7 +175,7 @@ function install_somkeping() {
     $INS rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
     # 下载SomkePing
     print_msg "info" "下载SomkePing"
-    wget -N --no-check-certificate https://github.com/ZMuSiShui/My-Shell/raw/main/smokeping/smokeping-2.6.11.tar.gz
+    wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-2.6.11.tar.gz
     tar -xzvf smokeping-2.6.11.tar.gz
     cd smokeping-2.6.11
     # 安装SomkePing
@@ -201,21 +201,21 @@ function install_somkeping() {
     if [[ ! "$1" == "Slaves" ]]; then
         yum install nginx spawn-fcgi -y
         if [[ "$1" == "Single" ]]; then
-            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/smokeping.conf
+            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
             rm -rf /etc/nginx/nginx.conf
-	        wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/nginx.conf
+	        wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
         elif [[ "$1" == "Master" ]]; then
-            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/smokeping-master.conf
+            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
             sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
             rm -rf /etc/nginx/nginx.conf
-            wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/nginx.conf
+            wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
         fi
         systemctl start nginx
         # 修改SmokePing权限
         chown -R nginx:nginx /opt/smokeping/htdocs
 	    chown -R nginx:nginx /opt/smokeping/etc/smokeping_secrets.dist
         # 配置supervisor
-        wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/main/smokeping/spawnfcgi.ini
+        wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
         supervisord -c /etc/supervisord.conf
         systemctl enable supervisord.service
         supervisorctl stop spawnfcgi
