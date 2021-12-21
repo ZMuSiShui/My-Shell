@@ -288,9 +288,9 @@ function check_install() {
 }
 
 function main() {
-  clear
   check_user
   check_system
+  clear
   echo -e "\t SmokePing 一键管理脚本 ${Red}[${version}]${Font}"
 
   echo -e "当前已安装版本：${shell_mode}"
