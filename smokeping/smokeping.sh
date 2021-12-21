@@ -407,6 +407,27 @@ function install_tcpping(){
     echo -e "${Info} 安装 tcpping 完成"
 }
 
+#卸载 SmokePing
+function uninstall() {
+    print_msg "warn" -e "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " && read -r unins
+    case $unins in
+        [yY][eE][sS] | [yY])
+            print_msg "info" "确认卸载"
+            sleep 2
+        ;;
+        *)
+            print_msg "error" "卸载已取消!"
+            exit 2
+        ;;
+    esac
+    kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
+    rm -rf /opt/smokeping
+    rm -rf /usr/bin/tcpping
+    rm -rf /etc/supervisord.d/spawnfcgi.ini
+    supervisorctl reload
+    print_msg "info" "SmokePing 卸载完成!"
+}
+
 function main() {
     check_user
     clear
