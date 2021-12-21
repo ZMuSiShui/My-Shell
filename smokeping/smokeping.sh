@@ -116,6 +116,11 @@ function check_system() {
     systemctl disable ufw
 }
 
+#获取进程PID
+function Get_PID(){
+	PID=(`ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|awk '{print $2}'|xargs`)
+}
+
 function check_status() {
     if [[ "$1" == "smokeping" ]]; then
         if [[ -e ${smokeping_ver} ]]; then
