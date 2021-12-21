@@ -156,7 +156,7 @@ function check_status() {
 # 安装依赖
 function install_dependency() {
     print_msg "info" "安装 SmokePing 依赖"
-    $INS rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
+    $INS epel-release rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
 }
 
 # 清除安装历史
