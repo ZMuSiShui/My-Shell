@@ -2,8 +2,8 @@
 ###
 # @Author: MuSiShui
 # @Date: 2021-11-22 19:34:07
- # @LastEditTime: 2021-11-24 20:29:45
- # @LastEditors: Please set LastEditors
+# @LastEditTime: 2021-11-24 20:29:45
+# @LastEditors: Please set LastEditors
 ###
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
@@ -27,10 +27,10 @@ WARN="${Yellow}[WARN]${Font}"
 ERROR="${Red}[ERROR]${Font}"
 
 #定义文件路径
-smokeping_ver="/opt/smokeping/onekeymanage/ver"
-smokeping_key="/opt/smokeping/onekeymanage/key"
-smokeping_name="/opt/smokeping/onekeymanage/name"
-smokeping_host="/opt/smokeping/onekeymanage/host"
+smokeping_ver="/opt/smokeping/manager/ver"
+smokeping_key="/opt/smokeping/manager/key"
+smokeping_name="/opt/smokeping/manager/name"
+smokeping_host="/opt/smokeping/manager/host"
 tcpping="/usr/bin/tcpping"
 
 version="0.1"
@@ -58,48 +58,61 @@ function check_user() {
 
 function check_system() {
     source '/etc/os-release'
-
+    
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         print_msg "info" "当前系统为 Centos ${VERSION_ID} ${VERSION}"
         INS="yum install -y"
         wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/base/nginx.repo
-
+        
     elif [[ "${ID}" == "ol" ]]; then
         print_msg "info" "当前系统为 Oracle Linux ${VERSION_ID} ${VERSION}"
         INS="yum install -y"
         wget -N -P /etc/yum.repos.d/ https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/base/nginx.repo
-
+        
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
         print_msg "info" "当前系统为 Debian ${VERSION_ID} ${VERSION}"
         INS="apt install -y"
         # 清除可能的遗留问题
         rm -f /etc/apt/sources.list.d/nginx.list
         $INS lsb-release gnupg2
-
+        
         echo "deb http://nginx.org/packages/debian $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
         curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
-
+        
         apt update
-
+        
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
         print_msg "info" "当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}"
         INS="apt install -y"
         # 清除可能的遗留问题
         rm -f /etc/apt/sources.list.d/nginx.list
         $INS lsb-release gnupg2
-
+        
         echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
         curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
         apt update
-
+        
     else
         print_msg "error" "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
         exit 1
     fi
-
+    
     if [[ $(grep "nogroup" /etc/group) ]]; then
         cert_group="nogroup"
     fi
+
+    # RedHat 系发行版关闭 SELinux
+    if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
+        sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+        setenforce 0
+    fi
+    # 关闭各类防火墙
+    systemctl stop firewalld
+    systemctl disable firewalld
+    systemctl stop nftables
+    systemctl disable nftables
+    systemctl stop ufw
+    systemctl disable ufw
 }
 
 function check_status() {
@@ -130,10 +143,10 @@ function check_status() {
     elif [[ "$1" == "tcpping" ]]; then
         if [[ ! -e ${tcpping} ]]; then
             echo -e "Tcpping状态: ${Red}未安装${Font}"
-        else 
+        else
             echo -e "Tcpping状态: ${Green}已安装${Font}"
         fi
-    else 
+    else
         print_msg "error" "发生错误"
         exit 1
     fi
@@ -142,14 +155,120 @@ function check_status() {
 #配置smokeping
 function configure() {
     cd /opt/smokeping/htdocs
-	mkdir var cache data
-	mv smokeping.fcgi.dist smokeping.fcgi
-	cd /opt/smokeping/etc
-	rm -rf config*
-	wget -O config -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/config
-	wget -O /opt/smokeping/lib/Smokeping/Graphs.pm -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/Graphs.pm
-	sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
-	chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
+    mkdir var cache data
+    mv smokeping.fcgi.dist smokeping.fcgi
+    cd /opt/smokeping/etc
+    rm -rf config*
+    wget -O config -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/config
+    wget -O /opt/smokeping/lib/Smokeping/Graphs.pm -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/Graphs.pm
+    sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
+    chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
+    # 创建启停脚本文件
+    wget -O /etc/init.d/smokeping.service -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping
+    chmod 755 /etc/init.d/smokeping
+    systemctl enable smokeping.service
+}
+
+# 安装依赖
+function install_dependency() {
+    print_msg "info" "安装依赖中"
+    $INS rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
+}
+
+# 清除安装历史
+function clean_history() {
+    print_msg "info" "清楚安装历史"
+    kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
+    rm -rf /opt/smokeping
+}
+
+# 下载源码
+function download_source() {
+    print_msg "info" "下载 SomkePing 源码"
+    wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-2.6.11.tar.gz
+    tar -xzvf smokeping-2.6.11.tar.gz
+    cd smokeping-2.6.11
+}
+
+# 编译安装 SomkePing
+function make_somkeping(){
+    ./setup/build-perl-modules.sh /opt/smokeping/thirdparty
+    ./configure --prefix=/opt/smokeping
+    make install
+}
+
+#清除文件
+function del_tmp_files(){
+    rm -rf /root/smokeping-2.6.*
+}
+
+# 配置 SomkePing
+function configure_somkeping(){
+    cd /opt/smokeping/htdocs
+    mkdir var cache data
+    mv smokeping.fcgi.dist smokeping.fcgi
+    cd /opt/smokeping/etc
+    rm -rf config*
+    wget -O config https://raw.githubusercontent.com/ILLKX/smokeping-onekey/master/config
+    wget -O /opt/smokeping/lib/Smokeping/Graphs.pm https://raw.githubusercontent.com/ILLKX/smokeping-onekey/master/Graphs.pm
+    sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
+    chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
+}
+
+#配置 config Master
+function configure_somkeping_master(){
+    cd /opt/smokeping/etc
+    sed -i "s/some.url/$server_name/g" config
+}
+
+# 安装 Nginx 及其他软件
+function nginx_install() {
+    if ! command -v nginx >/dev/null 2>&1; then
+        ${INS} nginx
+        print_msg "info" "Nginx 安装"
+    else
+        print_msg "warn" "Nginx 已存在"
+        ${INS} nginx
+    fi
+    # 遗留问题处理
+    mkdir -p /etc/nginx/conf.d >/dev/null 2>&1
+}
+
+# 修改 Nginx 配置文件
+function configure_nginx() {
+    wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
+    rm -rf /etc/nginx/nginx.conf
+    wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+    systemctl start nginx
+}
+
+# 修改 Nginx 配置文件 Master
+function configure_master_nginx() {
+    wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
+    sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
+    rm -rf /etc/nginx/nginx.conf
+    wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+    systemctl start nginx   
+}
+
+# 修改 SomkePing 权限
+function change_access() {
+    chown -R nginx:nginx /opt/smokeping/htdocs
+    chown -R nginx:nginx /opt/smokeping/etc/smokeping_secrets.dist
+}
+
+# 配置supervisor
+function configure_supervisor(){
+    wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
+    supervisord -c /etc/supervisord.conf
+    systemctl enable supervisord.service
+    supervisorctl stop spawnfcgi
+}
+
+# 同步时间
+function time_synchronization(){
+    cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 2>/dev/null
+    date -s "$(curl -sk --head https://dash.cloudflare.com | grep ^Date: | sed 's/Date: //g')"
 }
 
 function install_somkeping() {
@@ -166,73 +285,35 @@ function install_somkeping() {
     elif [[ "$1" == "Single" ]]; then
         print_msg "info" "开始安装 Single"
     fi
-    # 清楚安装历史
-    print_msg "info" "清楚安装历史"
-    kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
-    rm -rf /opt/smokeping
-    
-    # 安装依赖
-    print_msg "info" "安装依赖"
-    $INS rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
-    # 下载SomkePing
-    print_msg "info" "下载SomkePing"
-    wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-2.6.11.tar.gz
-    tar -xzvf smokeping-2.6.11.tar.gz
-    cd smokeping-2.6.11
-    # 安装SomkePing
-    print_msg "info" "安装SomkePing"
-    ./setup/build-perl-modules.sh /opt/smokeping/thirdparty
-    ./configure --prefix=/opt/smokeping
-	make install
+    clean_history
+    install_dependency
+    make_somkeping
     # 设置Slaves密钥
-    print_msg "info" "设置Slaves密钥"
     if [[ "$1" == "Slaves" ]]; then
+        print_msg "info" "设置Slaves密钥"
         rm -rf /opt/smokeping/etc/smokeping_secrets.dist
-	    echo -e "${slaves_secret}" > /opt/smokeping/etc/smokeping_secrets.dist
+        echo -e "${slaves_secret}" > /opt/smokeping/etc/smokeping_secrets.dist
     fi
-    print_msg "info" "配置 SmokePing config"
-    configure
+    configure_somkeping
     # 配置 config Master
     if [[ "$1" == "Master" ]]; then
-        cd /opt/smokeping/etc
-	    sed -i "s/some.url/$server_name/g" config
+        configure_somkeping_master
     fi
     # 安装Nginx及其他软件
     print_msg "info" "安装Nginx及其他软件"
     if [[ ! "$1" == "Slaves" ]]; then
-        yum install nginx spawn-fcgi -y
-        rm -rf /etc/nginx/conf.d/default.conf
+        nginx_install
         if [[ "$1" == "Single" ]]; then
-            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
-            rm -rf /etc/nginx/nginx.conf
-	        wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+            configure_nginx
         elif [[ "$1" == "Master" ]]; then
-            wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
-            sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
-            rm -rf /etc/nginx/nginx.conf
-            wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+            configure_master_nginx
         fi
-        systemctl start nginx
-        # 修改SmokePing权限
-        chown -R nginx:nginx /opt/smokeping/htdocs
-	    chown -R nginx:nginx /opt/smokeping/etc/smokeping_secrets.dist
-        # 配置supervisor
-        wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
-        supervisord -c /etc/supervisord.conf
-        systemctl enable supervisord.service
-        supervisorctl stop spawnfcgi
+        change_access
+        configure_supervisor
     fi
-    # 禁用SELinux
-    print_msg "info" "禁用SELinux"
-    setenforce 0
-	sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
-	sed -i "s/SELINUX=permissive/SELINUX=disabled/g" /etc/selinux/config
-    # 同步时间
-    cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 2>/dev/null
-	date -s "$(curl -sk --head https://dash.cloudflare.com | grep ^Date: | sed 's/Date: //g')"
-    # 清除文件
-    rm -rf /root/smokeping-2.6.*
-    mkdir /opt/smokeping/onekeymanage
+    time_synchronization
+    del_tmp_files
+    mkdir /opt/smokeping/manager
     echo $1 > ${smokeping_ver}
     if [[ "$1" == "Slaves" ]]; then
         echo -e "${slaves_secret}" > ${smokeping_key}
@@ -247,21 +328,21 @@ function check_install() {
         if [[ -e ${smokeping_ver} ]]; then
             print_msg "warn" -e "已经安装${Green} $mode2 ${Font}，是否重新安装 [y/n]: " && read -r install
             case $install in
-            [yY][eE][sS] | [yY])
-                print_msg "info" "继续安装"
-                sleep 2
+                [yY][eE][sS] | [yY])
+                    print_msg "info" "继续安装"
+                    sleep 2
                 ;;
-            *)
-                print_msg "error" "安装终止"
-                exit 2
+                *)
+                    print_msg "error" "安装终止"
+                    exit 2
                 ;;
             esac
             kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
             rm -rf /opt/smokeping
-			rm -rf /usr/bin/tcpping
-			supervisorctl stop spawnfcgi
-			print_msg "info" "Smokeping ${mode2} 卸载完成! 开始安装 $2 端!"
-			sleep 5
+            rm -rf /usr/bin/tcpping
+            supervisorctl stop spawnfcgi
+            print_msg "info" "Smokeping ${mode2} 卸载完成! 开始安装 $2 端!"
+            sleep 5
         elif [[ -e $2 ]]; then
             print_msg "error" "Smokeping 没有安装，请检查!"
             exit 1
@@ -270,13 +351,13 @@ function check_install() {
         if [[ -e ${tcpping} ]]; then
             print_msg "info" "已经安装${Green} tcpping ${Font}，是否重新安装 [y/n]: " && read -r install
             case $install in
-            [yY][eE][sS] | [yY])
-                print_msg "info" "继续安装"
-                sleep 2
+                [yY][eE][sS] | [yY])
+                    print_msg "info" "继续安装"
+                    sleep 2
                 ;;
-            *)
-                print_msg "error" "安装终止"
-                exit 2
+                *)
+                    print_msg "error" "安装终止"
+                    exit 2
                 ;;
             esac
             rm -rf /usr/bin/tcpping
@@ -289,63 +370,110 @@ function check_install() {
     fi
 }
 
-function main() {
-  check_user
-  clear
-  echo -e "\t SmokePing 一键管理脚本 ${Red}[${version}]${Font}"
+function change_mirrors() {
+    [ -f "ChangeMirrors.sh" ] && rm -rf ./ChangeMirrors.sh
+    wget -N --no-check-certificate https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh && chmod +x ChangeMirrors.sh && ./ChangeMirrors.sh
+}
 
-  echo -e "当前已安装版本：${shell_mode}"
-  echo -e "—————————————— 安装向导 ——————————————"""
-  echo -e "${Green}1.${Font} 安装 SmokePing Master端"
-  echo -e "${Green}2.${Font} 安装 SmokePing Slaves端"
-  echo -e "${Green}3.${Font} 安装 SmokePing 单机版"
-  echo -e "${Green}4.${Font} 安装 Tcpping"
-  echo -e "—————————————— 执行操作 ——————————————"
-  echo -e "${Green}5.${Font} 启动 SmokePing"
-  echo -e "${Green}6.${Font} 停止 SmokePing"
-  echo -e "${Green}7.${Font} 重启 SmokePing"
-  echo -e "—————————————— 其他选项 ——————————————"
-  echo -e "${Green}9.${Font} 卸载 SmokePing"
-  echo -e "${Green}0.${Font} 退出"
-  echo -e "——————————————"
-  check_status "smokeping"
-  check_status "tcpping"
-  read -rp "请输入数字：" menu_num
-  case $menu_num in
-  1)
-    check_install "smokeping" "Master"
-    install_somkeping "Master"
-    ;;
-  2)
-    check_install "smokeping" "Slaves"
-    install_somkeping "Slaves"
-    ;;
-  3)
-    check_install "smokeping" "Single"
-    install_somkeping "Single"
-    ;;
-  4)
-    check_install "tcpping"
-    install_tcpping
-    ;;
-  5)
-    run_smokeping
-    ;;
-  6)
-    stop_smokeping
-    ;;
-  7)
-    rerun_smokeping
-    ;;
-  9)
-    uninstall
-    ;;
-  0)
-    exit 0
-    ;;
-  *)
-    print_msg "error" "请输入正确的数字"
-    ;;
-  esac
+# 启动Single服务
+function Single_Run_SmokePing(){
+    cd /opt/smokeping/bin
+    ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
+    supervisorctl reload
+    Change_Access
+}
+
+# 启动Master服务
+function Master_Run_SmokePing(){
+    cd /opt/smokeping/bin
+    ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
+    supervisorctl reload
+    Change_Access
+}
+
+# 启动Slaves服务
+function Slaves_Run_SmokePing(){
+    cd /opt/smokeping/bin
+    ./smokeping --master-url=http://$server_name/smokeping.fcgi --cache-dir=/opt/smokeping/htdocs/cache --shared-secret=/opt/smokeping/etc/smokeping_secrets.dist --slave-name=$slaves_name --logfile=/opt/smokeping/slave.log
+}
+
+# 安装 Tcpping
+function install_tcpping(){
+    $INS tcptraceroute
+    rm -rf /usr/bin/tcpping
+    wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
+    chmod 777 tcpping
+    mv tcpping /usr/bin/
+    echo -e "${Info} 安装 tcpping 完成"
+}
+
+function main() {
+    check_user
+    clear
+    echo -e "\t SmokePing 一键管理脚本 ${Red}[${version}]${Font}"
+    
+    echo -e "当前已安装版本: ${shell_mode}"
+    echo -e "—————————————— 安装向导 ——————————————"""
+    echo -e "${Green}1.${Font} 安装 SmokePing Master端"
+    echo -e "${Green}2.${Font} 安装 SmokePing Slaves端"
+    echo -e "${Green}3.${Font} 安装 SmokePing 单机版"
+    echo -e "${Green}4.${Font} 安装 Tcpping"
+    echo -e "—————————————— 执行操作 ——————————————"
+    echo -e "${Green}5.${Font} 启动 SmokePing"
+    echo -e "${Green}6.${Font} 停止 SmokePing"
+    echo -e "${Green}7.${Font} 重启 SmokePing"
+    echo -e "—————————————— 其他选项 ——————————————"
+    echo -e "${Green}8.${Font} 更换 Linux 软件源"
+    echo -e "${Green}9.${Font} 卸载 SmokePing"
+    echo -e "${Green}0.${Font} 退出"
+    echo -e "——————————————"
+    check_status "smokeping"
+    check_status "tcpping"
+    read -rp "请输入数字: " menu_num
+    case $menu_num in
+        1)
+            check_install "smokeping" "Master"
+            install_somkeping "Master"
+        ;;
+        2)
+            check_install "smokeping" "Slaves"
+            install_somkeping "Slaves"
+        ;;
+        3)
+            check_install "smokeping" "Single"
+            install_somkeping "Single"
+        ;;
+        4)
+            check_install "tcpping"
+            install_tcpping
+        ;;
+        5)
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            ${mode}_Run_SmokePing
+        ;;
+        6)
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
+            supervisorctl stop spawnfcgi
+        ;;
+        7)
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
+            ${mode}_Run_SmokePing
+        ;;
+        8)
+            change_mirrors
+        ;;
+        9)
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            uninstall
+        ;;
+        0)
+            exit 0
+        ;;
+        *)
+            print_msg "error" "请输入正确的数字"
+        ;;
+    esac
 }
 main "$@"
