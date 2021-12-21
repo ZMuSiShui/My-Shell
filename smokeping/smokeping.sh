@@ -201,6 +201,7 @@ function install_somkeping() {
     print_msg "info" "安装Nginx及其他软件"
     if [[ ! "$1" == "Slaves" ]]; then
         yum install nginx spawn-fcgi -y
+        rm -rf /etc/nginx/conf.d/default.conf
         if [[ "$1" == "Single" ]]; then
             wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
             rm -rf /etc/nginx/nginx.conf
