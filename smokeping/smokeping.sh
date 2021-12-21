@@ -281,6 +281,7 @@ function install_somkeping() {
     fi
     clean_history
     install_dependency
+    download_source
     make_somkeping
     # 设置Slaves密钥
     if [[ "$1" == "Slaves" ]]; then
@@ -307,7 +308,7 @@ function install_somkeping() {
     fi
     time_synchronization
     del_tmp_files
-    mkdir /opt/smokeping/manager
+    mkdir -p /opt/smokeping/manager
     echo $1 > ${smokeping_ver}
     if [[ "$1" == "Slaves" ]]; then
         echo -e "${slaves_secret}" > ${smokeping_key}
