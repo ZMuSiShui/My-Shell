@@ -226,19 +226,19 @@ function nginx_install() {
 # 修改 Nginx 配置文件
 function configure_nginx() {
     print_msg "info" "修改 Single Nginx 配置文件"
-    wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
+    wget -O /etc/nginx/conf.d/smokeping.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
-    wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+    wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
     systemctl start nginx
 }
 
 # 修改 Nginx 配置文件 Master
 function configure_master_nginx() {
     print_msg "info" "修改 Master Nginx 配置文件"
-    wget -O /etc/nginx/conf.d/smokeping.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
+    wget -O /etc/nginx/conf.d/smokeping.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-master.conf
     sed -i "s/local/$server_name/g" /etc/nginx/conf.d/smokeping.conf
     rm -rf /etc/nginx/nginx.conf
-    wget -O /etc/nginx/nginx.conf --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
+    wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
     systemctl start nginx   
 }
 
@@ -252,7 +252,7 @@ function change_access() {
 # 配置 Supervisor
 function configure_supervisor(){
     print_msg "info" "配置 Supervisor"
-    wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
+    wget -O /etc/supervisord.d/spawnfcgi.ini -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
     supervisord -c /etc/supervisord.conf
     systemctl enable supervisord.service
     supervisorctl stop spawnfcgi
@@ -378,7 +378,7 @@ function Single_Run_SmokePing(){
     cd /opt/smokeping/bin
     ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
-    Change_Access
+    change_access
 }
 
 # 启动 Master 服务
@@ -387,7 +387,7 @@ function Master_Run_SmokePing(){
     cd /opt/smokeping/bin
     ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
-    Change_Access
+    change_access
 }
 
 # 启动 Slaves 服务
@@ -402,7 +402,7 @@ function install_tcpping(){
     print_msg "info" "安装 Tcpping"
     $INS tcptraceroute
     rm -rf /usr/bin/tcpping
-    wget -O /etc/supervisord.d/spawnfcgi.ini --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
+    wget -O /etc/supervisord.d/spawnfcgi.ini -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
     chmod 777 tcpping
     mv tcpping /usr/bin/
     echo -e "${Info} 安装 tcpping 完成"
@@ -410,7 +410,7 @@ function install_tcpping(){
 
 # 卸载 SmokePing
 function uninstall() {
-    print_msg "warn" -e "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " && read -r unins
+    print_msg "warn" "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " && read -r unins
     case $unins in
         [yY][eE][sS] | [yY])
             print_msg "info" "确认卸载"
