@@ -267,6 +267,7 @@ function configure_supervisor(){
     print_msg "info" "配置 Supervisor"
     wget -O /etc/supervisord.d/spawnfcgi.ini -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/spawnfcgi.ini
     supervisord -c /etc/supervisord.conf
+    supervisorctl reload
     systemctl enable supervisord.service
     supervisorctl stop spawnfcgi
 }
