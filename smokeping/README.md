@@ -1,3 +1,6 @@
+## Update ##
+升级 SmokePing 版本为 2.8.2
+
 ## 功能 ##
 - 一键启动、停止、重启SmokePing服务
 - 一键安装、卸载SmokePing三种版本

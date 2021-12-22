@@ -27,10 +27,10 @@ WARN="${Yellow}[WARN]${Font}"
 ERROR="${Red}[ERROR]${Font}"
 
 #定义文件路径
-smokeping_ver="/opt/smokeping/manager/ver"
-smokeping_key="/opt/smokeping/manager/key"
-smokeping_name="/opt/smokeping/manager/name"
-smokeping_host="/opt/smokeping/manager/host"
+smokeping_ver="/opt/local/smokeping/manager/ver"
+smokeping_key="/opt/local/smokeping/manager/key"
+smokeping_name="/opt/local/smokeping/manager/name"
+smokeping_host="/opt/local/smokeping/manager/host"
 tcpping="/usr/bin/tcpping"
 
 version="0.1"
@@ -164,53 +164,57 @@ function install_dependency() {
     $INS epel-release rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
 }
 
+# 安装 Fping 5.0
+function install_fping() {
+    print_msg "info" "安装 FPing"
+    wget -N --no-check-certificate https://fping.org/dist/fping-5.0.tar.gz
+    tar -zxvf fping-5.0.tar.gz
+    cd fping-5.0
+    ./configure
+    make && make install
+}
+
+# 安装 SmokePing
+function make_somkeping() {
+    print_msg "info" "安装 SmokePing"
+    wget -N --no-check-certificate https://oss.oetiker.ch/smokeping/pub/smokeping-2.8.2.tar.gz
+    tar -xzvf smokeping-2.8.2.tar.gz
+    cd smokeping-2.8.2
+    ./configure --prefix=/opt/local/smokeping
+    /usr/bin/gmake install
+}
+
+
 # 清除安装历史
 function clean_history() {
     print_msg "info" "清除安装历史"
     kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
-    rm -rf /opt/smokeping
-}
-
-# 下载源码
-function download_source() {
-    print_msg "info" "下载 SomkePing 源码"
-    wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/smokeping-2.6.11.tar.gz
-    tar -xzvf smokeping-2.6.11.tar.gz
-    cd smokeping-2.6.11
-}
-
-# 编译安装 SomkePing
-function make_somkeping(){
-    print_msg "info" "编译安装 SomkePing"
-    ./setup/build-perl-modules.sh /opt/smokeping/thirdparty
-    ./configure --prefix=/opt/smokeping
-    make install
+    rm -rf /opt/local/smokeping
 }
 
 # 清除文件
 function del_tmp_files(){
     print_msg "info" "清除文件"
-    rm -rf /root/smokeping-2.6.*
+    rm -rf /root/smokeping-2.8.*
 }
 
 # 配置 SomkePing
 function configure_somkeping(){
     print_msg "info" "配置 SmokePing"
-    cd /opt/smokeping/htdocs
+    cd /opt/local/smokeping/htdocs
     mkdir var cache data
     mv smokeping.fcgi.dist smokeping.fcgi
-    cd /opt/smokeping/etc
+    cd /opt/local/smokeping/etc
     rm -rf config*
-    wget -O config https://raw.githubusercontent.com/ILLKX/smokeping-onekey/master/config
-    wget -O /opt/smokeping/lib/Smokeping/Graphs.pm https://raw.githubusercontent.com/ILLKX/smokeping-onekey/master/Graphs.pm
-    sed -i "1648s/die/print/" /opt/smokeping/lib/Smokeping.pm
-    chmod 600 /opt/smokeping/etc/smokeping_secrets.dist
+    wget -O config https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/config
+    wget -O /opt/local/smokeping/lib/Smokeping/Graphs.pm https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/Graphs.pm
+    chmod 600 /opt/local/smokeping/etc/smokeping_secrets.dist
 }
 
 # 配置 SmokePing Master
 function configure_somkeping_master(){
     print_msg "info" "配置 SmokePing Master"
-    cd /opt/smokeping/etc
+    cd /opt/local/smokeping/etc
     sed -i "s/some.url/$server_name/g" config
 }
 
@@ -252,8 +256,8 @@ function configure_master_nginx() {
 # 修改 SomkePing 权限
 function change_access() {
     print_msg "info" "修改 SomkePing 权限"
-    chown -R nginx:nginx /opt/smokeping/htdocs
-    chown -R nginx:nginx /opt/smokeping/etc/smokeping_secrets.dist
+    chown -R nginx:nginx /opt/local/smokeping/htdocs
+    chown -R nginx:nginx /opt/local/smokeping/etc/smokeping_secrets.dist
 }
 
 # 配置 Supervisor
@@ -288,13 +292,13 @@ function install_somkeping() {
     fi
     clean_history
     install_dependency
-    download_source
+    install_fping
     make_somkeping
     # 设置Slaves密钥
     if [[ "$1" == "Slaves" ]]; then
         print_msg "info" "设置Slaves密钥"
-        rm -rf /opt/smokeping/etc/smokeping_secrets.dist
-        echo -e "${slaves_secret}" > /opt/smokeping/etc/smokeping_secrets.dist
+        rm -rf /opt/local/smokeping/etc/smokeping_secrets.dist
+        echo -e "${slaves_secret}" > /opt/local/smokeping/etc/smokeping_secrets.dist
     fi
     # 配置 config Master
     configure_somkeping
@@ -315,7 +319,7 @@ function install_somkeping() {
     fi
     time_synchronization
     del_tmp_files
-    mkdir -p /opt/smokeping/manager
+    mkdir -p /opt/local/smokeping/manager
     echo $1 > ${smokeping_ver}
     if [[ "$1" == "Slaves" ]]; then
         echo -e "${slaves_secret}" > ${smokeping_key}
@@ -323,7 +327,7 @@ function install_somkeping() {
         echo -e "${server_name}" > ${smokeping_host}
     fi
     print_msg "info" "安装 SmokePing $1端完成"
-    print_msg "info" "配置文件地址: /opt/smokeping/etc/config"
+    print_msg "info" "配置文件地址: /opt/local/smokeping/etc/config"
 }
 
 function check_install() {
@@ -341,7 +345,7 @@ function check_install() {
                 ;;
             esac
             kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
-            rm -rf /opt/smokeping
+            rm -rf /opt/local/smokeping
             rm -rf /usr/bin/tcpping
             supervisorctl stop spawnfcgi
             print_msg "info" "Smokeping ${mode2} 卸载完成! 开始安装 $2 端!"
@@ -383,8 +387,8 @@ function change_mirrors() {
 # 启动 Single 服务
 function Single_Run_SmokePing(){
     print_msg "info" "启动 Single 服务"
-    cd /opt/smokeping/bin
-    ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
+    cd /opt/local/smokeping/bin
+    ./smokeping --config=/opt/local/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
     change_access
 }
@@ -392,8 +396,8 @@ function Single_Run_SmokePing(){
 # 启动 Master 服务
 function Master_Run_SmokePing(){
     print_msg "info" "启动 Master 服务"
-    cd /opt/smokeping/bin
-    ./smokeping --config=/opt/smokeping/etc/config --logfile=smoke.log
+    cd /opt/local/smokeping/bin
+    ./smokeping --config=/opt/local/smokeping/etc/config --logfile=smoke.log
     supervisorctl reload
     change_access
 }
@@ -401,8 +405,8 @@ function Master_Run_SmokePing(){
 # 启动 Slaves 服务
 function Slaves_Run_SmokePing(){
     print_msg "info" "启动 Slaves 服务"
-    cd /opt/smokeping/bin
-    ./smokeping --master-url=http://$server_name/smokeping.fcgi --cache-dir=/opt/smokeping/htdocs/cache --shared-secret=/opt/smokeping/etc/smokeping_secrets.dist --slave-name=$slaves_name --logfile=/opt/smokeping/slave.log
+    cd /opt/local/smokeping/bin
+    ./smokeping --master-url=http://$server_name/smokeping.fcgi --cache-dir=/opt/local/smokeping/htdocs/cache --shared-secret=/opt/local/smokeping/etc/smokeping_secrets.dist --slave-name=$slaves_name --logfile=/opt/local/smokeping/slave.log
 }
 
 # 安装 Tcpping
@@ -430,7 +434,7 @@ function uninstall() {
         ;;
     esac
     kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
-    rm -rf /opt/smokeping
+    rm -rf /opt/local/smokeping
     rm -rf /usr/bin/tcpping
     rm -rf /etc/supervisord.d/spawnfcgi.ini
     supervisorctl reload

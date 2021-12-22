@@ -1,19 +1,19 @@
 *** General ***
 
-owner = Peter Random
-contact = some@address.nowhere
+owner = JunYun
+contact = zhangjie@qiyou.cn
 mailhost = my.mail.host
 sendmail = /usr/sbin/sendmail
 # NOTE: do not put the Image Cache below cgi-bin
 # since all files under cgi-bin will be executed ... this is not
 # good for images.
-imgcache = /opt/smokeping/htdocs/cache
+imgcache = /opt/local/smokeping/htdocs/cache
 imgurl = cache
-datadir = /opt/smokeping/htdocs/data
-piddir = /opt/smokeping/htdocs/var
+datadir = /opt/local/smokeping/htdocs/data
+piddir = /opt/local/smokeping/htdocs/var
 cgiurl = http://some.url/smokeping.cgi
-smokemail = /opt/smokeping/etc/smokemail.dist
-tmail = /opt/smokeping/etc/tmail.dist
+smokemail = /opt/local/smokeping/etc/smokemail.dist
+tmail = /opt/local/smokeping/etc/tmail.dist
 # specify this to get syslog logging
 syslogfacility = local0
 # each probe is now run in its own process
@@ -24,15 +24,38 @@ syslogfacility = local0
 to = alertee@address.somewhere
 from = smokealert@company.xy
 
++hostdown
+type = loss
+# in percent
+pattern = ==0%,==0%,==0%,==U
+comment = 对端无响应
+
++highloss
+type = loss
+# in percent
+pattern = ==0%,==0%,==0%,==0%,>10%,>10%,>10%
+comment = 连续3次采样-丢包率超过10%
+
++lossdetect
+type = loss
+# in percent
+pattern = ==0%,==0%,==0%,==0%,>0%,>0%,>0%
+comment = 连续3次采样-存在丢包
+
 +someloss
 type = loss
 # in percent
 pattern = >0%,*12*,>0%,*12*,>0%
-comment = loss 3 times  in a row
+comment = 间断性丢包
+
+# +rttdetect
+# type = rtt
+# # in milli seconds
+# pattern = <100,<100,<100,<100,<100,<150,>150,>150,>150
+# comment = 连续3次采样延迟增大-超过150ms
 
 *** Database ***
-
-step     = 300
+step     = 60
 pings    = 20
 
 # consfn mrhb steps total
@@ -49,7 +72,7 @@ AVERAGE  0.5 144   720
 
 charset = utf-8
 
-template = /opt/smokeping/etc/basepage.html.dist
+template = /opt/local/smokeping/etc/basepage.html.dist
 
 + charts
 
@@ -106,42 +129,57 @@ unison_tolerance = 2
 *** Probes ***
 
 + FPing
-
-binary = /usr/sbin/fping
-
-*** Slaves ***
-secrets=/opt/smokeping/etc/smokeping_secrets.dist
-+boomer
-display_name=boomer
-color=0000ff
-
-+slave2
-display_name=another
-color=00ff00
+binary = /usr/local/sbin/fping
+#可以设置源IP地址，适用于多IP的服务器，（比如组专线内网+公网）服务器
+#sourceaddressn = 1.1.1.1
+#
+#*** Slaves ***
+#secrets=/usr/local/smokeping/etc/smokeping_secrets.dist
+#+aliyunShenzhen
+#display_name=slave1
+#location=China
+#color=ff0000
+#
+#+aliyunHangzhou
+#display_name=slave2
+#location=China
+#color=ff00ff
 
 *** Targets ***
 
 probe = FPing
 
 menu = Top
-title = Network Latency Grapher
-remark = Welcome to the SmokePing website of xxx Company. \
-         Here you will learn all about the latency of our network.
+title = 网络质量监控系统
+remark = 如果您是合法管理员，那么欢迎您，如果不是，请立即离开 
 
-+ Test
-menu= Targets
-#parents = owner:/Test/James location:/
+#加载额外的监控主机（将监控主机，单独成一个文件）
 
-++ James
+# @include targets
 
-menu = James
-title = James
-alerts = someloss
-slaves = boomer slave2
-host = james.address
+# 演示: 
 
-++ MultiHost
++ DNS
+menu= 公共 DNS 监控
+title = 公共 DNS 网络监控
+host = /DNS/dns-1 /DNS/dns-2 /DNS/dns-3 /DNS/dns-4
 
-menu = Multihost
-title = James and James as seen from Boomer
-host = /Test/James /Test/James~boomer
+++ dns-1
+menu = 114-DNS
+title = 114-DNS
+host = 114.114.114.114
+
+++ dns-2
+menu = AliDNS
+title = AliDNS
+host = 223.5.5.5
+
+++ dns-3
+menu = BaiDuDNS
+title = BaiDuDNS
+host = 180.76.76.76
+
+++ dns-4
+menu = DNSPOD
+title = DNSPOD
+host = 119.29.29.29
