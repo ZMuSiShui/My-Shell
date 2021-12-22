@@ -410,7 +410,7 @@ function install_tcpping(){
     print_msg "info" "安装 Tcpping"
     $INS tcptraceroute
     rm -rf /usr/bin/tcpping
-    wget -O /etc/supervisord.d/spawnfcgi.ini -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
+    wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
     chmod 777 tcpping
     mv tcpping /usr/bin/
     echo -e "${Info} 安装 tcpping 完成"
