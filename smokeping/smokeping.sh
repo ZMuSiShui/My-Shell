@@ -413,7 +413,7 @@ function install_tcpping(){
     wget -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/tcpping
     chmod 777 tcpping
     mv tcpping /usr/bin/
-    echo -e "${Info} 安装 tcpping 完成"
+    print_msg "info" "安装 tcpping 完成"
 }
 
 # 卸载 SmokePing
