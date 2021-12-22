@@ -166,6 +166,7 @@ function install_dependency() {
 
 # 安装 Fping 5.0
 function install_fping() {
+    cd /root
     print_msg "info" "安装 FPing"
     wget -N --no-check-certificate https://fping.org/dist/fping-5.0.tar.gz
     tar -zxvf fping-5.0.tar.gz
@@ -176,6 +177,7 @@ function install_fping() {
 
 # 安装 SmokePing
 function make_somkeping() {
+    cd /root
     print_msg "info" "安装 SmokePing"
     wget -N --no-check-certificate https://oss.oetiker.ch/smokeping/pub/smokeping-2.8.2.tar.gz
     tar -xzvf smokeping-2.8.2.tar.gz
