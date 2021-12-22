@@ -161,7 +161,7 @@ function check_status() {
 # 安装依赖
 function install_dependency() {
     print_msg "info" "安装 SmokePing 依赖"
-    $INS epel-release rrdtool perl-rrdtool perl-core openssl-devel fping curl gcc-c++ make wqy-zenhei-fonts.noarch supervisor curl
+    $INS $(curl -fsSL https://git.io/Jyv0j)
 }
 
 # 安装 Fping 5.0
