@@ -241,7 +241,9 @@ function configure_nginx() {
     rm -rf /etc/nginx/nginx.conf
     rm -rf /etc/nginx/conf.d/default.conf
     wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
-    systemctl start nginx
+    
+    systemctl enable nginx
+    systemctl restart nginx
 }
 
 # 修改 Nginx 配置文件 Master
@@ -252,7 +254,9 @@ function configure_master_nginx() {
     rm -rf /etc/nginx/nginx.conf
     rm -rf /etc/nginx/conf.d/default.conf
     wget -O /etc/nginx/nginx.conf -N --no-check-certificate https://raw.githubusercontent.com/ZMuSiShui/My-Shell/${github_branch}/smokeping/nginx.conf
-    systemctl start nginx   
+    
+    systemctl enable nginx
+    systemctl restart nginx   
 }
 
 # 修改 SomkePing 权限
@@ -280,7 +284,7 @@ function time_synchronization(){
 }
 
 function install_somkeping() {
-    clean
+    clear
     check_system
     if [[ "$1" == "Master" ]]; then
         print_msg "info" "开始安装 Master"
@@ -336,7 +340,7 @@ function install_somkeping() {
 function check_install() {
     if [[ "$1" == "smokeping" ]]; then
         if [[ -e ${smokeping_ver} ]]; then
-            read -rp "warn" -e "已经安装${Green} $mode2 ${Font}，是否重新安装 [y/n]: " install
+            read -rp "已经安装 $mode2，是否重新安装 [y/n]: " install
             case $install in
                 [yY][eE][sS] | [yY])
                     print_msg "info" "继续安装"
@@ -359,7 +363,7 @@ function check_install() {
         fi
     elif [[ "$1" == "tcpping" ]]; then
         if [[ -e ${tcpping} ]]; then
-            read -rp  "info" "已经安装${Green} tcpping ${Font}，是否重新安装 [y/n]: " install
+            read -rp "已经安装 Tcpping，是否重新安装 [y/n]: " install
             case $install in
                 [yY][eE][sS] | [yY])
                     print_msg "info" "继续安装"
@@ -425,7 +429,7 @@ function install_tcpping(){
 
 # 卸载 SmokePing
 function uninstall() {
-    read -rp  "warn" "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " unins
+    read -rp "已经安装 $mode2，是否卸载 [y/n]: " unins
     case $unins in
         [yY][eE][sS] | [yY])
             print_msg "info" "确认卸载"
@@ -444,6 +448,16 @@ function uninstall() {
     print_msg "info" "SmokePing 卸载完成!"
 }
 
+function set_passwd() {
+    print_msg "info" "设置 Web 访问密码"
+    sed -i 's/# //g' /etc/nginx/conf.d/smokeping.conf
+    read -rp "请输入访问用户名: " web_username
+    read -rp "请输入访问密码: " web_password
+    htpasswd -bc /opt/local/smokeping/passwd $web_username $web_password
+    [[ -e "/opt/local/smokeping/passwd" ]] && print_msg "info" "设置 Web 访问密码成功"
+    nginx -s reload
+}
+
 function main() {
     check_user
     clear
@@ -451,18 +465,19 @@ function main() {
     
     echo -e "当前已安装版本: ${shell_mode}"
     echo -e "—————————————— 安装向导 ——————————————"""
-    echo -e "${Green}1.${Font} 安装 SmokePing Master端"
-    echo -e "${Green}2.${Font} 安装 SmokePing Slaves端"
-    echo -e "${Green}3.${Font} 安装 SmokePing 单机版"
-    echo -e "${Green}4.${Font} 安装 Tcpping"
+    echo -e "${Green}1.${Font}  安装 SmokePing Master端"
+    echo -e "${Green}2.${Font}  安装 SmokePing Slaves端"
+    echo -e "${Green}3.${Font}  安装 SmokePing 单机版"
+    echo -e "${Green}4.${Font}  安装 Tcpping"
     echo -e "—————————————— 执行操作 ——————————————"
-    echo -e "${Green}5.${Font} 启动 SmokePing"
-    echo -e "${Green}6.${Font} 停止 SmokePing"
-    echo -e "${Green}7.${Font} 重启 SmokePing"
+    echo -e "${Green}5.${Font}  启动 SmokePing"
+    echo -e "${Green}6.${Font}  停止 SmokePing"
+    echo -e "${Green}7.${Font}  重启 SmokePing"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}8.${Font} 更换 Linux 软件源"
-    echo -e "${Green}9.${Font} 卸载 SmokePing"
-    echo -e "${Green}0.${Font} 退出"
+    echo -e "${Green}8.${Font}  更换 Linux 软件源"
+    echo -e "${Green}9.${Font}  设置 Web 访问密码"
+    echo -e "${Green}10.${Font} 卸载 SmokePing"
+    echo -e "${Green}0.${Font}  退出"
     echo -e "——————————————"
     check_status "smokeping"
     check_status "tcpping"
@@ -485,16 +500,16 @@ function main() {
             install_tcpping
         ;;
         5)
-            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${ERROR} Smokeping 没有安装，请检查!" && exit 1
             ${mode}_Run_SmokePing
         ;;
         6)
-            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${ERROR} Smokeping 没有安装，请检查!" && exit 1
             kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
             supervisorctl stop spawnfcgi
         ;;
         7)
-            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${ERROR} Smokeping 没有安装，请检查!" && exit 1
             kill -9 `ps -ef |grep "smokeping"|grep -v "grep"|grep -v "smokeping.sh"|grep -v "perl"|awk '{print $2}'|xargs` 2>/dev/null
             ${mode}_Run_SmokePing
         ;;
@@ -502,7 +517,10 @@ function main() {
             change_mirrors
         ;;
         9)
-            [[ ! -e ${smokeping_ver} ]] && echo -e "${Error} Smokeping 没有安装，请检查!" && exit 1
+            set_passwd
+        ;;
+        10)
+            [[ ! -e ${smokeping_ver} ]] && echo -e "${ERROR} Smokeping 没有安装，请检查!" && exit 1
             uninstall
         ;;
         0)
