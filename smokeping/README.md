@@ -5,6 +5,7 @@
 - 一键启动、停止、重启SmokePing服务
 - 一键安装、卸载SmokePing三种版本
 - 一键安装Tcpping (Smokeping专用版本)
+- 一键配置访问密码
 - 安装supervisor以守护fcgi进程
 - 自动更换至GMT+8时区并对时
 - 自动更换Linux软件源(可选)
