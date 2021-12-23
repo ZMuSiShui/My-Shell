@@ -99,11 +99,11 @@ function check_system() {
 function openssl_install() {
     print_msg "info" "安装 OpenSSL"
     if ! command -v openssl >/dev/null 2>&1; then
-        ${INS} openssl
+        ${INS} openssl libssl-dev
         print_msg "info" "OpenSSL 安装"
     else
         print_msg "warn" "OpenSSL 已存在"
-        ${INS} openssl
+        ${INS} openssl libssl-dev
     fi
 }
 
