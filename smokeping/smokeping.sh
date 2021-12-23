@@ -33,7 +33,7 @@ smokeping_name="/opt/local/smokeping/manager/name"
 smokeping_host="/opt/local/smokeping/manager/host"
 tcpping="/usr/bin/tcpping"
 
-version="0.1"
+version="1.0"
 github_branch="main"
 
 function print_msg() {
@@ -284,12 +284,12 @@ function install_somkeping() {
     check_system
     if [[ "$1" == "Master" ]]; then
         print_msg "info" "开始安装 Master"
-        print_msg "info" "请输入Master地址 : " && read -r server_name
+        read -rp "info" "请输入Master地址 : " server_name
     elif [[ "$1" == "Slaves" ]]; then
         print_msg "info" "开始安装 Slaves"
-        print_msg "info" "请输入Master地址 : " && read -r server_name
-        print_msg "info" "请输入Slaves名称 : " && read -r slaves_name
-        print_msg "info" "请输入Slaves密钥 : " && read -r slaves_secret
+        read -rp  "info" "请输入Master地址 : " server_name
+        read -rp  "info" "请输入Slaves名称 : " slaves_name
+        read -rp  "info" "请输入Slaves密钥 : " slaves_secret
     elif [[ "$1" == "Single" ]]; then
         print_msg "info" "开始安装 Single"
     fi
@@ -336,7 +336,7 @@ function install_somkeping() {
 function check_install() {
     if [[ "$1" == "smokeping" ]]; then
         if [[ -e ${smokeping_ver} ]]; then
-            print_msg "warn" -e "已经安装${Green} $mode2 ${Font}，是否重新安装 [y/n]: " && read -r install
+            read -rp "warn" -e "已经安装${Green} $mode2 ${Font}，是否重新安装 [y/n]: " install
             case $install in
                 [yY][eE][sS] | [yY])
                     print_msg "info" "继续安装"
@@ -359,7 +359,7 @@ function check_install() {
         fi
     elif [[ "$1" == "tcpping" ]]; then
         if [[ -e ${tcpping} ]]; then
-            print_msg "info" "已经安装${Green} tcpping ${Font}，是否重新安装 [y/n]: " && read -r install
+            read -rp  "info" "已经安装${Green} tcpping ${Font}，是否重新安装 [y/n]: " install
             case $install in
                 [yY][eE][sS] | [yY])
                     print_msg "info" "继续安装"
@@ -425,7 +425,7 @@ function install_tcpping(){
 
 # 卸载 SmokePing
 function uninstall() {
-    print_msg "warn" "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " && read -r unins
+    read -rp  "warn" "已经安装${Green} $mode2 ${Font}，是否卸载 [y/n]: " unins
     case $unins in
         [yY][eE][sS] | [yY])
             print_msg "info" "确认卸载"
@@ -447,7 +447,7 @@ function uninstall() {
 function main() {
     check_user
     clear
-    echo -e "\t SmokePing 一键管理脚本 ${Red}[${version}]${Font}"
+    echo -e "\t SmokePing 一键管理脚本 ${Green}[${version}]${Font}"
     
     echo -e "当前已安装版本: ${shell_mode}"
     echo -e "—————————————— 安装向导 ——————————————"""

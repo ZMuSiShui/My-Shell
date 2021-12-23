@@ -94,3 +94,37 @@ function check_system() {
         cert_group="nogroup"
     fi
 }
+
+# 安装 OpenSSL
+function openssl_install() {
+    print_msg "info" "安装 OpenSSL"
+    if ! command -v openssl >/dev/null 2>&1; then
+        ${INS} openssl
+        print_msg "info" "OpenSSL 安装"
+    else
+        print_msg "warn" "OpenSSL 已存在"
+        ${INS} openssl
+    fi
+}
+
+function main() {
+    check_system
+    openssl_install
+    clear
+    echo -e "\t OpenSSL 一键自签证书 ${Green}[${version}]${Font}"
+    
+    while [[ -z "$domain" ]]; do
+        read -rp "*请输入域名/IP(如 *.example.com): " domain
+    done
+    read -rp "请输入邮箱地址(默认 admin@example.com): " email
+    [[ -z "$email" ]] && email=admin@example.com
+    read -rp "请输入证书有效期(默认 3650): " day
+    [[ -z "$day" ]] && day=3650
+    dir=$domain && mkdir -p $dir
+    crt_file="$dir/${domain}.crt"
+    key_file="$dir/${domain}.key"
+    openssl req -x509 -nodes -newkey rsa:2048 -days $day -keyout $key_file -out $crt_file -subj "/C=CN/ST=MyCrt/L=MyCrt/O=MyCrt/OU=MyCrt/CN=${domain}/emailAddress=${email}"
+    echo -e "\t证书: $(pwd)/$crt_file\n\t私钥: $(pwd)/$key_file"
+}
+
+main
